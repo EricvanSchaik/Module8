@@ -1,0 +1,15 @@
+NUMBER=1
+POWER=2
+TIMES=3
+PLUS=4
+NEG=5
+LEFT=6
+RIGHT=7
+WS=8
+TYPO=9
+'^'=2
+'*'=3
+'+'=4
+'-'=5
+'('=6
+')'=7

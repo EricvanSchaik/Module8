@@ -1,0 +1,5 @@
+lexer grammar CC12;
+
+WORD:   ALPHABETIC ALPHANUMERIC ALPHANUMERIC ALPHANUMERIC ALPHANUMERIC ALPHANUMERIC;
+fragment ALPHABETIC      : 'a'..'z';
+fragment ALPHANUMERIC    : 'a'..'z' | '0'..'9';

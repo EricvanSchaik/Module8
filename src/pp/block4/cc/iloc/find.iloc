@@ -1,0 +1,13 @@
+start: in "" => r_x               // Line 1: int x = in();
+       loadI -1 => r_i            // Line 3: i = 0;
+       loadI @alength => r_len    // load a.length into r_len
+for:   addI r_i,1 => r_i          // Line 3: i++
+       cmp_LT r_i,r_len => r_cmp  // Line 3: while (i < a.length)
+       cbr r_cmp -> if, end
+if:    i2i r_i => r_a             // compute address of a[i]
+       multI r_a,4 => r_a         // multiply by size of int
+       addI r_a,@a => r_a         // add a's base offset
+       loadAO r_arp,r_a => r_ai   // r_ai <- a[i]
+       cmp_EQ r_x,r_ai => r_cmp   // Line 4: if (a[i] == x)
+       cbr r_cmp -> end,for
+end:   out "Index: ", r_i         // Line 8: printf("Index: %d%n", i);

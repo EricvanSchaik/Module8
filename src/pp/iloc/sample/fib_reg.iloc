@@ -1,0 +1,13 @@
+start: loadAI r_arp,@n => r_n     // load n into r_n
+       loadI 1 => r_x             // Line 1: int x = 1;
+       loadI 1 => r_y             // Line 2: int y = 1;
+       loadI 1 => r_z             // Line 3: int z = 1;
+       loadI 1 => r_1             // load 1 into r_1 for the while loop
+while: cmp_GT r_n,r_1 => r_cmp    // Line 4: while (n > 1)
+       cbr r_cmp -> body, end     // jump to either the body or the end
+body:  add r_x,r_y => r_z         // Line 5: z = x+y;
+       i2i r_y => r_x             // Line 6: x = y;
+       i2i r_z => r_y             // Line 7: y = z;
+       sub r_n,r_1 => r_n         // Line 8: n = n-1;
+       jumpI -> while             // jump back to the while condition
+end:   out "z: ", r_z             // Line 9: return z;

@@ -1,0 +1,11 @@
+T__0=1
+T__1=2
+TEXT=3
+WS=4
+COMMENT=5
+BEGIN=6
+END=7
+ARGUMENT=8
+'&'=1
+'\\\\'=2
+'\\end{tabular}'=7
