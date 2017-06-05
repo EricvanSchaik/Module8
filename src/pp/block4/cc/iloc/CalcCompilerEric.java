@@ -29,10 +29,7 @@ public class CalcCompilerEric extends CalcCompiler {
     @Override
     public void exitNumber(CalcParser.NumberContext ctx) {
         addRegister(ctx);
-        Num num = new Num(Integer.parseInt(ctx.getText()));
-        OpCode opCode = OpCode.loadI;
-        Reg reg = registers.get(ctx);
-        emit(opCode, num, reg);
+        emit(OpCode.loadI, new Num(Integer.parseInt(ctx.getText())), registers.get(ctx));
     }
 
     @Override
