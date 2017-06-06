@@ -138,6 +138,8 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 	@Override
 	public Op visitIfStat(SimplePascalParser.IfStatContext ctx) {
 		Label thenLabel = createLabel(ctx, "then");
+		Label endIfLabel = createLabel(ctx, "endIf");
+		Reg ifBool = reg(ctx.expr());
 		return visit(ctx.expr());
 	}
 }

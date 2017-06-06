@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import pp.block5.cc.ParseException;
 import pp.block5.cc.pascal.SimplePascalBaseListener;
 import pp.block5.cc.pascal.SimplePascalParser.*;
@@ -36,13 +37,10 @@ public class Checker extends SimplePascalBaseListener {
 	}
 
 	@Override
-	public void exitVarDecl(VarDeclContext ctx) {
-		setEntry(ctx, entry(ctx));
-	}
-
-	@Override
 	public void exitVar(VarContext ctx) {
-		setEntry(ctx, entry(ctx));
+		for (TerminalNode id: ctx.ID()) {
+			this.scope.put(id.getText(), getType(ctx.type()));
+		}
 	}
 
 	@Override
@@ -178,6 +176,16 @@ public class Checker extends SimplePascalBaseListener {
 	public void exitTrueExpr(TrueExprContext ctx) {
 		setType(ctx, Type.BOOL);
 		setEntry(ctx, ctx);
+	}
+
+	@Override
+	public void exitIntType(IntTypeContext ctx) {
+		setType(ctx, Type.INT);
+	}
+
+	@Override
+	public void exitBoolType(BoolTypeContext ctx) {
+		setType(ctx, Type.BOOL);
 	}
 
 	/** Indicates if any errors were encountered in this tree listener. */
