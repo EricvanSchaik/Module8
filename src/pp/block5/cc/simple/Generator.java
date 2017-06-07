@@ -4,17 +4,11 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeProperty;
-
 import pp.block5.cc.pascal.SimplePascalBaseVisitor;
 import pp.block5.cc.pascal.SimplePascalParser;
 import pp.iloc.Simulator;
-import pp.iloc.model.Label;
-import pp.iloc.model.Num;
-import pp.iloc.model.Op;
-import pp.iloc.model.OpCode;
-import pp.iloc.model.Operand;
-import pp.iloc.model.Program;
-import pp.iloc.model.Reg;
+import pp.iloc.model.*;
+
 /** Class to generate ILOC code for Simple Pascal. */
 public class Generator extends SimplePascalBaseVisitor<Op> {
 	/** The representation of the boolean value <code>false</code>. */
@@ -123,16 +117,18 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 
 	@Override
 	public Op visitBlock(SimplePascalParser.BlockContext ctx) {
+		Op result = visit(ctx.stat(0));
 		for (SimplePascalParser.StatContext context: ctx.stat().subList(1, ctx.stat().size())) {
 			visit(context);
 		}
-		return visit(ctx.stat(0));
+		return result;
 	}
 
 	@Override
 	public Op visitAssStat(SimplePascalParser.AssStatContext ctx) {
+		Op result = visit(ctx.expr());
 		emit(OpCode.storeAI, reg(ctx.expr()), arp, offset(ctx.target()));
-		return visit(ctx.expr());
+		return result;
 	}
 
 	@Override
@@ -140,6 +136,106 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 		Label thenLabel = createLabel(ctx, "then");
 		Label endIfLabel = createLabel(ctx, "endIf");
 		Reg ifBool = reg(ctx.expr());
+		Op result = visit(ctx.expr());
+		if (ctx.ELSE() == null) {
+			emit(OpCode.cbr, ifBool, thenLabel, endIfLabel);
+			visit(ctx.stat(0)).setLabel(thenLabel);
+		}
+		else {
+			Label elseLabel = createLabel(ctx, "else");
+			emit(OpCode.cbr, ifBool, thenLabel, elseLabel);
+			visit(ctx.stat(0)).setLabel(thenLabel);
+			emit(OpCode.jumpI, endIfLabel);
+			visit(ctx.stat(1)).setLabel(elseLabel);
+		}
+		emit(endIfLabel, OpCode.nop);
+		return result;
+	}
+
+	@Override
+	public Op visitWhileStat(SimplePascalParser.WhileStatContext ctx) {
+		Label whileLabel = createLabel(ctx, "while");
+		Label bodyLabel = createLabel(ctx, "body");
+		Label endWhileLabel = createLabel(ctx, "endWhile");
+		Op result = visit(ctx.expr());
+		result.setLabel(whileLabel);
+		Reg whileBool = reg(ctx.expr());
+		emit(OpCode.cbr, whileBool, bodyLabel, endWhileLabel);
+		visit(ctx.stat()).setLabel(bodyLabel);
+		emit(OpCode.jumpI, whileLabel);
+		emit(endWhileLabel, OpCode.nop);
+		return result;
+	}
+
+	@Override
+	public Op visitBlockStat(SimplePascalParser.BlockStatContext ctx) {
+		return visit(ctx.block());
+	}
+
+	@Override
+	public Op visitInStat(SimplePascalParser.InStatContext ctx) {
+		Reg target = reg(ctx.target());
+		Str text = new Str(ctx.STR().getText());
+		emit(OpCode.in, text, target);
+		return emit(OpCode.storeAI, target, arp, offset(ctx));
+	}
+
+	@Override
+	public Op visitOutStat(SimplePascalParser.OutStatContext ctx) {
+		Op result = visit(ctx.expr());
+		emit(OpCode.out, new Str(ctx.STR().getText()), reg(ctx.expr()));
+		return result;
+	}
+
+	@Override
+	public Op visitParExpr(SimplePascalParser.ParExprContext ctx) {
 		return visit(ctx.expr());
+	}
+
+	@Override
+	public Op visitTrueExpr(SimplePascalParser.TrueExprContext ctx) {
+		return emit(OpCode.loadI, TRUE_VALUE, reg(ctx));
+	}
+
+	@Override
+	public Op visitFalseExpr(SimplePascalParser.FalseExprContext ctx) {
+		return emit(OpCode.loadI, FALSE_VALUE, reg(ctx));
+	}
+
+	@Override
+	public Op visitCompExpr(SimplePascalParser.CompExprContext ctx) {
+		Op result = visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		Reg expr1 = reg(ctx.expr(0));
+		Reg expr2 = reg(ctx.expr(1));
+		Reg compr = reg(ctx);
+		if (ctx.compOp().EQ() != null) {
+			emit(OpCode.cmp_EQ, expr1, expr2, compr);
+		}
+		else if (ctx.compOp().GE() != null) {
+			emit(OpCode.cmp_GE, expr1, expr2, compr);
+		}
+		else if (ctx.compOp().GT() != null) {
+			emit(OpCode.cmp_GT, expr1, expr2, compr);
+		}
+		else if (ctx.compOp().LE() != null) {
+			emit(OpCode.cmp_LE, expr1, expr2, compr);
+		}
+		else if (ctx.compOp().LT() != null) {
+			emit(OpCode.cmp_LT, expr1, expr2, compr);
+		}
+		else {
+			emit(OpCode.cmp_NE, expr1, expr2, compr);
+		}
+		return result;
+	}
+
+	@Override
+	public Op visitPrfExpr(SimplePascalParser.PrfExprContext ctx) {
+		Op result = visit(ctx.expr());
+		if (ctx.prfOp().MINUS() != null) {
+
+		}
+		return result;
 	}
 }
