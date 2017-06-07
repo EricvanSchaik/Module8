@@ -234,8 +234,60 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 	public Op visitPrfExpr(SimplePascalParser.PrfExprContext ctx) {
 		Op result = visit(ctx.expr());
 		if (ctx.prfOp().MINUS() != null) {
-
+			emit(OpCode.rsubI, reg(ctx.expr()), new Num(0), reg(ctx));
+		}
+		else {
+			emit(OpCode.xorI, reg(ctx.expr()), TRUE_VALUE, reg(ctx));
 		}
 		return result;
+	}
+
+	@Override
+	public Op visitBoolExpr(SimplePascalParser.BoolExprContext ctx) {
+		Op result = visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		if (ctx.boolOp().AND() != null) {
+			emit(OpCode.and, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
+		}
+		else {
+			emit(OpCode.or, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
+		}
+		return result;
+	}
+
+	@Override
+	public Op visitMultExpr(SimplePascalParser.MultExprContext ctx) {
+		Op result = visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		if (ctx.multOp().STAR() != null) {
+			emit(OpCode.mult, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
+		}
+		else {
+			emit(OpCode.div, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
+		}
+		return result;
+	}
+
+	@Override
+	public Op visitNumExpr(SimplePascalParser.NumExprContext ctx) {
+		return emit(OpCode.loadI, new Num(Integer.parseInt(ctx.getText())), reg(ctx));
+	}
+
+	@Override
+	public Op visitPlusExpr(SimplePascalParser.PlusExprContext ctx) {
+		Op result = visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		if (ctx.plusOp().PLUS() != null) {
+			emit(OpCode.add, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
+		}
+		else {
+			emit(OpCode.sub, reg(ctx.expr(0)), reg(ctx.expr(1)), reg(ctx));
+		}
+		return result;
+	}
+
+	@Override
+	public Op visitIdExpr(SimplePascalParser.IdExprContext ctx) {
+		return emit(OpCode.loadAI, arp, offset(ctx), reg(ctx));
 	}
 }
