@@ -135,8 +135,8 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 	public Op visitIfStat(SimplePascalParser.IfStatContext ctx) {
 		Label thenLabel = createLabel(ctx, "then");
 		Label endIfLabel = createLabel(ctx, "endIf");
-		Reg ifBool = reg(ctx.expr());
 		Op result = visit(ctx.expr());
+		Reg ifBool = reg(ctx.expr());
 		if (ctx.ELSE() == null) {
 			emit(OpCode.cbr, ifBool, thenLabel, endIfLabel);
 			visit(ctx.stat(0)).setLabel(thenLabel);
@@ -176,8 +176,9 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 	public Op visitInStat(SimplePascalParser.InStatContext ctx) {
 		Reg target = reg(ctx.target());
 		Str text = new Str(ctx.STR().getText());
-		emit(OpCode.in, text, target);
-		return emit(OpCode.storeAI, target, arp, offset(ctx));
+		Op result = emit(OpCode.in, text, target);
+		emit(OpCode.storeAI, target, arp, offset(ctx.target()));
+		return result;
 	}
 
 	@Override
@@ -189,6 +190,7 @@ public class Generator extends SimplePascalBaseVisitor<Op> {
 
 	@Override
 	public Op visitParExpr(SimplePascalParser.ParExprContext ctx) {
+		setReg(ctx, reg(ctx.expr()));
 		return visit(ctx.expr());
 	}
 
